@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>THE EXIT 8: LORONG MATEMATIKA</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;font-family:'Segoe UI',system-ui,sans-serif}
+html,body{width:100%;height:100%;overflow:hidden;background:#0f172a;color:#f8fafc;touch-action:none}
+#game-canvas{display:block;width:100vw;height:100vh}
+.overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;padding:16px}
+.hidden{display:none!important}
+#start-screen{background:linear-gradient(135deg,rgba(15,23,42,.86),rgba(30,41,59,.72));backdrop-filter:blur(4px);align-items:flex-start;padding-left:clamp(24px,7vw,96px)}
+.exit-badge{display:inline-flex;align-items:center;gap:10px;background:#facc15;color:#111827;font-weight:900;font-size:15px;letter-spacing:2px;padding:6px 14px;border-radius:4px;margin-bottom:14px;box-shadow:0 4px 14px rgba(250,204,21,.35)}
+.main-title{font-size:clamp(30px,5.2vw,58px);font-weight:900;letter-spacing:3px;line-height:1.05;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,.55);margin-bottom:8px}
+.main-sub{font-size:clamp(13px,1.7vw,16px);color:#cbd5e1;margin-bottom:24px;max-width:520px;line-height:1.5}
+.menu-stack{display:flex;flex-direction:column;gap:10px;width:min(350px,86vw)}
+.menu-row{display:flex;gap:8px;width:100%}
+.btn{cursor:pointer;border:none;border-radius:6px;font-weight:700;font-size:14px;letter-spacing:.8px;padding:11px 16px;transition:transform .12s,background .15s,opacity .15s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:#facc15;color:#111827}.btn-primary:hover:not(:disabled){background:#fde047}
+.btn-dark{background:rgba(15,23,42,.82);color:#f1f5f9;border:1px solid rgba(255,255,255,.18)}.btn-dark:hover:not(:disabled){background:rgba(30,41,59,.95)}
+.btn-blue{background:#2563eb;color:#fff}.btn-blue:hover:not(:disabled){background:#3b82f6}
+.btn-green{background:#16a34a;color:#fff}.btn-green:hover:not(:disabled){background:#22c55e}
+.btn-red{background:#dc2626;color:#fff}.btn-red:hover:not(:disabled){background:#ef4444}
+.btn-sm{padding:7px 11px;font-size:12px}
+select,input[type=text],input[type=number],textarea{background:#0f172a;color:#f8fafc;border:1px solid #475569;border-radius:6px;padding:8px 11px;font-size:13px;outline:none;width:100%}
+select:focus,input:focus,textarea:focus{border-color:#facc15}
+.card{background:rgba(15,23,42,.95);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:20px;width:min(540px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.65)}
+.card-wide{width:min(760px,95vw)}
+.card h2{font-size:20px;font-weight:800;margin-bottom:12px;color:#facc15;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:#94a3b8;margin-bottom:5px;font-weight:600}
+.credit-tag{position:fixed;bottom:14px;right:18px;color:#fff;font-size:13px;font-weight:600;letter-spacing:.4px;text-shadow:0 2px 8px rgba(0,0,0,.85);pointer-events:none;z-index:25}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10}
+.hud-tl{position:absolute;top:14px;left:14px;background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 14px;backdrop-filter:blur(4px);min-width:170px}
+.hud-exit{font-size:18px;font-weight:900;color:#facc15;letter-spacing:1.2px}
+.hud-sub{font-size:12px;color:#e2e8f0;margin-top:2px;font-variant-numeric:tabular-nums}
+.hud-clue{font-size:12px;color:#fde047;margin-top:4px;font-weight:800;letter-spacing:.6px}
+.hud-tr{position:absolute;top:14px;right:14px;background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;pointer-events:auto;backdrop-filter:blur(4px);display:flex;flex-direction:column;gap:6px;min-width:210px}
+.stam-bar{width:100%;height:7px;background:#334155;border-radius:4px;overflow:hidden}
+.stam-fill{height:100%;width:100%;background:#22c55e;transition:width .08s linear,background .15s}
+.hud-btns{display:flex;gap:6px;flex-wrap:wrap}
+.hud-btn{pointer-events:auto;cursor:pointer;border:1px solid rgba(255,255,255,.22);background:rgba(30,41,59,.9);color:#f8fafc;border-radius:5px;padding:5px 9px;font-size:11px;font-weight:700}
+.hud-btn.on{background:#7c3aed;border-color:#c4b5fd}
+#crosshair{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:rgba(255,255,255,.55);pointer-events:none;z-index:11}
+#mob-joy{position:absolute;bottom:22px;left:22px;width:118px;height:118px;border-radius:50%;border:2px solid rgba(250,204,21,.55);background:rgba(15,23,42,.45);pointer-events:auto;touch-action:none}
+#mob-knob{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fde047,#ca8a04);box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#mob-acts{position:absolute;bottom:22px;right:18px;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
+#mob-acts button{background:rgba(15,23,42,.82);color:#f8fafc;border:1px solid rgba(255,255,255,.24);border-radius:8px;padding:10px 14px;font-weight:800;font-size:12px;min-width:86px;cursor:pointer}
+#mob-acts button.active{background:#facc15;color:#111827}
+#locker-prompt{position:fixed;bottom:145px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.92);border:1px solid #facc15;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;color:#fde047;z-index:15;pointer-events:auto;display:flex;align-items:center;gap:10px}
+#toast{position:fixed;top:76px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.94);border:1px solid #facc15;color:#f8fafc;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;z-index:35;pointer-events:none;text-align:center;max-width:90vw}
+#anom-unlock-card{position:fixed;bottom:20px;left:20px;background:rgba(15,23,42,.96);border:2px solid #facc15;border-radius:10px;padding:10px;display:flex;align-items:center;gap:11px;z-index:38;box-shadow:0 12px 30px rgba(0,0,0,.6);max-width:320px}
+.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;margin-top:10px}
+.gal-card{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px;text-align:center}
+.gal-card.unlocked{border-color:#facc15}
+.gal-card canvas{width:100%;height:86px;border-radius:6px;background:#0f172a;display:block;margin-bottom:6px}
+.gal-title{font-size:12px;font-weight:800;color:#f8fafc}.gal-desc{font-size:11px;color:#94a3b8;margin-top:3px;line-height:1.3}
+.status-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1e293b;border-radius:7px;font-size:12px;margin-bottom:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:#64748b;flex-shrink:0}
+.dot.wait{background:#facc15}.dot.ok{background:#22c55e}.dot.err{background:#ef4444}
+.lb-row{display:flex;justify-content:space-between;padding:7px 10px;background:#1e293b;border-radius:6px;font-size:13px;margin-bottom:6px}
+.swatch-row{display:flex;gap:7px;flex-wrap:wrap}
+.swatch{width:28px;height:28px;border-radius:6px;border:2px solid transparent;cursor:pointer}
+.swatch.sel{border-color:#fff;transform:scale(1.1)}
+.q-item{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px;margin-bottom:8px}
+.mp-player-chip{display:inline-flex;align-items:center;gap:5px;background:#0f172a;border:1px solid #475569;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;margin:2px}
+#flash-fx{position:fixed;inset:0;pointer-events:none;z-index:18;opacity:0;transition:opacity .2s}
+</style>
+</head>
+<body>
+<canvas id="game-canvas"></canvas>
+<div id="crosshair" class="hidden"></div>
+<div id="flash-fx"></div>
+<div id="toast" class="hidden"></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-tl">
+    <div class="hud-exit" id="hud-exit">EXIT 0 / 8</div>
+    <div class="hud-sub" id="hud-score">SKOR: 0/0</div>
+    <div class="hud-sub" id="hud-timer">WAKTU: 00:00.00</div>
+    <div class="hud-clue" id="hud-clue">PETUNJUK KODE LOKER: _ - _ - _</div>
+  </div>
+  <div class="hud-tr">
+    <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800">
+      <span>STAMINA</span><span id="hud-flash-lbl" style="color:#c4b5fd">[SENTER: OFF]</span>
+    </div>
+    <div class="stam-bar"><div class="stam-fill" id="stam-fill"></div></div>
+    <div class="hud-btns">
+      <button class="hud-btn" id="btn-hud-flash">🔦 SENTER</button>
+      <button class="hud-btn" id="btn-hud-mute">🔊 SUARA: ON</button>
+      <button class="hud-btn" id="btn-hud-pause">⏸ PAUSE</button>
+    </div>
+  </div>
+  <div id="mob-joy"><div id="mob-knob"></div></div>
+  <div id="mob-acts">
+    <button id="btn-mob-zoom">ZOOM</button>
+    <button id="btn-mob-run">LARI</button>
+    <button id="btn-mob-flash">SENTER</button>
+  </div>
+</div>
+
+<div id="locker-prompt" class="hidden">
+  <span>🔐 Loker Rahasia [E]</span>
+  <button class="btn btn-primary btn-sm" id="btn-open-locker">BUKA LOKER</button>
+</div>
+
+<!-- ANOMALY UNLOCK POPUP -->
+<div id="anom-unlock-card" class="hidden">
+  <canvas id="anom-unlock-cvs" width="96" height="72" style="border-radius:6px;background:#0f172a;flex-shrink:0"></canvas>
+  <div>
+    <div style="font-size:11px;font-weight:900;color:#facc15;letter-spacing:.7px">ANOMALI BARU TERUNGKAP!</div>
+    <div id="anom-unlock-name" style="font-size:13px;font-weight:800;color:#fff;margin-top:2px"></div>
+    <div id="anom-unlock-desc" style="font-size:11px;color:#cbd5e1;margin-top:2px"></div>
+  </div>
+</div>
+
+<!-- MAIN MENU -->
+<div id="start-screen" class="overlay">
+  <div class="exit-badge"><span>EXIT</span><span style="background:#111827;color:#facc15;padding:1px 7px;border-radius:3px">8</span></div>
+  <h1 class="main-title">THE EXIT 8<br><span style="color:#facc15;font-size:.66em">LORONG MATEMATIKA</span></h1>
+  <p class="main-sub">Amati lorong dengan saksama. Jika normal, terus maju ke tangga depan. Jika ada anomali, segera berbalik ke tangga belakang. Jawab ujian Matematika SMP Kelas 7 untuk naik tingkat!</p>
+  <div class="menu-stack">
+    <div class="field" style="margin-bottom:4px">
+      <label style="color:#cbd5e1">MODE PERMAINAN SINGLEPLAYER</label>
+      <select id="sp-type-select">
+        <option value="normal">Mode Biasa (Exit 0 → Exit 8)</option>
+        <option value="seed">Mode Tantangan (Kode Seed)</option>
+        <option value="endless">Mode Endless (Tanpa Batas)</option>
+      </select>
+    </div>
+    <div id="seed-box" class="hidden" style="background:rgba(15,23,42,.82);border:1px solid #475569;border-radius:8px;padding:10px">
+      <label style="font-size:11px;color:#facc15;font-weight:700;display:block;margin-bottom:5px">KODE SEED TANTANGAN (4 KARAKTER)</label>
+      <div class="menu-row" style="margin-bottom:6px">
+        <input type="text" id="seed-input" maxlength="6" placeholder="A7X9" style="text-transform:uppercase;font-weight:800;letter-spacing:2px">
+        <button class="btn btn-dark btn-sm" id="btn-seed-rand">🎲 Acak</button>
+        <button class="btn btn-dark btn-sm" id="btn-seed-copy">📋 Salin</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btn-play">▶ MULAI PERMAINAN</button>
+    <div class="menu-row">
+      <button class="btn btn-blue" style="flex:1" id="btn-open-mp">🌐 MULTIPLAYER (8P)</button>
+      <button class="btn btn-dark" style="flex:1" id="btn-open-char">👕 KARAKTER</button>
+    </div>
+    <div class="menu-row">
+      <button class="btn btn-dark" style="flex:1" id="btn-open-galeri">📖 GALERI (<span id="gal-count-lbl">0/18</span>)</button>
+      <button class="btn btn-dark" style="flex:1" id="btn-open-lb">🏆 LEADERBOARD</button>
+    </div>
+    <button class="btn btn-dark" id="btn-open-set">⚙ PENGATURAN & KONTROL</button>
+  </div>
+  <div class="credit-tag">Dibuat oleh: Diondra Seno Aji - Kelas 7SA1</div>
+</div>
+
+<!-- MULTIPLAYER PANEL -->
+<div id="panel-mp" class="overlay hidden" style="background:rgba(2,6,23,.82)">
+  <div class="card">
+    <h2><span>🌐 MULTIPLAYER ONLINE (MAKS 8 PEMAIN)</span><button class="btn btn-dark btn-sm" onclick="closePanels()">✕</button></h2>
+    <div class="status-row"><div class="dot" id="mp-dot"></div><div id="mp-status">Siap membuat atau bergabung ke room.</div></div>
+    <div class="menu-row" style="margin-bottom:12px">
+      <button class="btn btn-primary" style="flex:1" id="btn-host-room">🏠 BUAT ROOM (HOST)</button>
+      <button class="btn btn-blue" style="flex:1" id="btn-show-join">🔗 GABUNG ROOM</button>
+    </div>
+    <div id="mp-host-box" class="hidden" style="background:#1e293b;padding:12px;border-radius:8px;margin-bottom:10px">
+      <div style="font-size:12px;color:#94a3b8">KODE ROOM ANDA:</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0">
+        <div id="mp-room-code" style="font-size:26px;font-weight:900;letter-spacing:4px;color:#facc15">----</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-dark btn-sm" id="btn-copy-code">📋 SALIN KODE</button>
+          <button class="btn btn-dark btn-sm" id="btn-copy-link">🔗 LINK UNDANGAN</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;border-top:1px solid #334155;padding-top:10px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;color:#fde047">
+          <input type="checkbox" id="mp-custom-quiz-toggle"> Mode Pembuat Soal (Custom Quiz Host)
+        </label>
+        <div id="mp-custom-quiz-box" class="hidden" style="margin-top:8px">
+          <div id="mp-q-list"></div>
+          <button class="btn btn-dark btn-sm" id="btn-add-cq">+ Tambah Soal (Maks 5)</button>
+        </div>
+      </div>
+    </div>
+    <div id="mp-join-box" class="hidden" style="background:#1e293b;padding:12px;border-radius:8px;margin-bottom:10px">
+      <label style="font-size:12px;color:#94a3b8;display:block;margin-bottom:5px">MASUKKAN KODE ROOM (4 KARAKTER)</label>
+      <div class="menu-row">
+        <input type="text" id="mp-join-input" maxlength="8" placeholder="ABCD" style="text-transform:uppercase;font-weight:800;letter-spacing:2px">
+        <button class="btn btn-dark btn-sm" id="btn-paste-join">📋 TEMPEL & GABUNG</button>
+        <button class="btn btn-blue btn-sm" id="btn-join-go">GABUNG</button>
+      </div>
+    </div>
+    <div id="mp-lobby-box" class="hidden" style="background:#1e293b;padding:12px;border-radius:8px;margin-bottom:10px">
+      <div id="mp-lobby-count" style="font-size:13px;font-weight:800;color:#facc15;margin-bottom:6px">Pemain Terhubung (1/8):</div>
+      <div id="mp-lobby-names" style="margin-bottom:10px"></div>
+      <button class="btn btn-green" style="width:100%" id="btn-mp-start">▶ MULAI BERMAIN BERSAMA</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHARACTER CUSTOMIZATION -->
+<div id="panel-char" class="overlay hidden" style="background:rgba(2,6,23,.82)">
+  <div class="card">
+    <h2><span>👕 KUSTOMISASI KARAKTER</span><button class="btn btn-dark btn-sm" onclick="closePanels()">✕</button></h2>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+      <canvas id="char-preview" width="150" height="210" style="background:#1e293b;border-radius:10px;border:1px solid #334155"></canvas>
+      <div style="flex:1;min-width:210px">
+        <div class="field"><label>Nama Pemain</label><input type="text" id="char-name" maxlength="14" value="Siswa 7"></div>
+        <div class="field"><label>Warna Baju & Lengan Senter</label><div class="swatch-row" id="sw-shirt"></div></div>
+        <div class="field"><label>Gaya Rambut</label>
+          <select id="char-hair">
+            <option value="short">Pendek Rapi</option><option value="spiky">Spiky</option><option value="bob">Bob Panjang</option><option value="none">Plontos</option>
+          </select>
+        </div>
+        <div class="field"><label>Aksesori Kepala</label>
+          <select id="char-cap">
+            <option value="none">Tanpa Topi</option><option value="cap">Topi Sekolah</option><option value="beanie">Kupluk</option>
+          </select>
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="char-glasses"> Pakai Kacamata</label>
+        </div>
+        <div id="gold-skin-box" style="background:#1e293b;padding:8px;border-radius:6px;font-size:12px">
+          <span id="gold-skin-status">🔒 Agent Emas Exit 8: Buka Loker Rahasia Segmen 3!</span>
+          <button class="btn btn-primary btn-sm hidden" id="btn-equip-gold" style="margin-top:6px;width:100%">✨ PAKAI AGENT EMAS EXIT 8</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" id="btn-save-char">💾 SIMPAN KARAKTER</button>
+  </div>
+</div>
+
+<!-- ANOMALY GALLERY -->
+<div id="panel-galeri" class="overlay hidden" style="background:rgba(2,6,23,.85)">
+  <div class="card card-wide">
+    <h2><span>📖 GALERI ANOMALI (<span id="gal-hdr-cnt">0/18</span>)</span><button class="btn btn-dark btn-sm" onclick="closePanels()">✕</button></h2>
+    <p style="font-size:12px;color:#94a3b8">Berhasil lolos dari koridor beranomali akan membuka kartu ilustrasi anomalinya secara permanen.</p>
+    <div class="gal-grid" id="gal-grid"></div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="panel-lb" class="overlay hidden" style="background:rgba(2,6,23,.85)">
+  <div class="card">
+    <h2><span>🏆 LEADERBOARD SPEEDRUN TOP 5</span><button class="btn btn-dark btn-sm" onclick="closePanels()">✕</button></h2>
+    <div id="lb-list"></div>
+    <button class="btn btn-red btn-sm" style="margin-top:8px" id="btn-clear-lb">🗑 Reset Rekor</button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="panel-set" class="overlay hidden" style="background:rgba(2,6,23,.85)">
+  <div class="card">
+    <h2><span>⚙ PENGATURAN</span><button class="btn btn-dark btn-sm" onclick="closePanels()">✕</button></h2>
+    <div class="field"><label>Kualitas Grafik (Semua mode pakai cahaya teduh netral)</label>
+      <select id="set-gfx"><option value="low">Rendah (Cepat 60 FPS)</option><option value="medium">Sedang (Seimbang)</option><option value="high">Tinggi (Tajam 1024px)</option></select>
+    </div>
+    <div class="field"><label>Sensitivitas Kamera: <span id="sens-val">1.0</span></label>
+      <input type="range" id="set-sens" min="0.4" max="2.5" step="0.1" value="1.0" style="width:100%">
+    </div>
+    <div class="field"><label>Volume Audio: <span id="vol-val">70%</span></label>
+      <input type="range" id="set-vol" min="0" max="1" step="0.05" value="0.7" style="width:100%">
+    </div>
+    <p style="font-size:12px;color:#94a3b8;line-height:1.5">Kontrol PC: WASD/Panah jalan, Shift lari, F senter UV, E buka loker, Klik kanan / Z zoom, P jeda.<br>HP/Tablet: Analog kiri, geser layar kanan untuk melihat, tombol ZOOM / LARI / SENTER di kanan bawah.</p>
+  </div>
+</div>
+
+<!-- PAUSE MENU -->
+<div id="pause-screen" class="overlay hidden" style="background:rgba(2,6,23,.82)">
+  <div class="card" style="text-align:center">
+    <h2 style="justify-content:center">⏸ PERMAINAN DIJEDA</h2>
+    <div class="menu-stack" style="margin:0 auto">
+      <button class="btn btn-primary" id="btn-resume">▶ LANJUTKAN</button>
+      <button class="btn btn-dark" id="btn-pause-set">⚙ PENGATURAN</button>
+      <button class="btn btn-red" id="btn-quit">🏠 KEMBALI KE MENU UTAMA</button>
+    </div>
+  </div>
+</div>
+
+<!-- MATH QUIZ MODAL -->
+<div id="math-modal" class="overlay hidden" style="background:rgba(2,6,23,.86)">
+  <div class="card">
+    <h2><span>📝 UJIAN MATEMATIKA SMP KELAS 7</span><span id="math-badge" style="font-size:12px;color:#94a3b8"></span></h2>
+    <div id="math-q" style="font-size:17px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.45"></div>
+    <div id="math-opts" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"></div>
+    <div id="math-fb" style="margin-top:12px;font-size:13px;font-weight:700;min-height:20px"></div>
+  </div>
+</div>
+
+<!-- LOCKER MODAL -->
+<div id="locker-modal" class="overlay hidden" style="background:rgba(2,6,23,.85)">
+  <div class="card" style="max-width:360px;text-align:center">
+    <h2><span>🔐 LOKER RAHASIA SEGMEN 3</span><button class="btn btn-dark btn-sm" id="btn-close-locker">✕</button></h2>
+    <p style="font-size:12px;color:#cbd5e1;margin-bottom:10px">Masukkan 3 digit kode dari digit terakhir 3 jawaban matematika pertamamu!</p>
+    <input type="text" id="locker-input" maxlength="3" placeholder="000" style="text-align:center;font-size:28px;font-weight:900;letter-spacing:10px;margin-bottom:12px">
+    <button class="btn btn-primary" style="width:100%" id="btn-submit-locker">🔓 BUKA LOKER</button>
+  </div>
+</div>
+
+<!-- END / VICTORY SCREEN -->
+<div id="end-screen" class="overlay hidden" style="background:rgba(2,6,23,.88)">
+  <div class="card" style="text-align:center">
+    <h2 style="justify-content:center;font-size:26px">🌤 SELAMAT! KELUAR DARI EXIT 8!</h2>
+    <p id="end-summary" style="font-size:15px;color:#e2e8f0;margin-bottom:14px;line-height:1.5"></p>
+    <div id="end-lb" style="text-align:left;margin-bottom:14px"></div>
+    <div class="menu-row">
+      <button class="btn btn-primary" style="flex:1" id="btn-end-again">🔄 MAIN LAGI</button>
+      <button class="btn btn-dark" style="flex:1" id="btn-end-galeri">📖 GALERI ANOMALI</button>
+      <button class="btn btn-dark" style="flex:1" id="btn-end-menu">🏠 MENU UTAMA</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rand4=()=>{const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];return s;};
+function hashStr(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function makeSeededRng(seedStr){let a=hashStr(seedStr)||1;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let activeRngFn=Math.random;
+const rng=()=>activeRngFn();
+const rInt=(a,b)=>Math.floor(rng()*(b-a+1))+a;
+
+// === STORAGE & SETTINGS ===
+const LS={
+  gfx:localStorage.getItem('exit8_gfx')||'medium',
+  vol:parseFloat(localStorage.getItem('exit8_vol')||'0.7'),
+  muted:localStorage.getItem('exit8_muted')==='1',
+  sens:parseFloat(localStorage.getItem('exit8_sens')||'1.0'),
+  unlocked:JSON.parse(localStorage.getItem('exit8_unlocked_anoms')||'[]'),
+  lb:JSON.parse(localStorage.getItem('exit8_leaderboard')||'[]'),
+  gold:localStorage.getItem('exit8_gold_skin')==='1',
+  char:JSON.parse(localStorage.getItem('exit8_char')||'{"name":"Siswa 7","shirt":"#2563eb","hair":"short","cap":"none","glasses":false,"gold":false}')
+};
+const SHIRT_COLORS=['#2563eb','#dc2626','#16a34a','#9333ea','#0f172a','#ea580c','#0891b2','#f8fafc'];
+const saveChar=()=>localStorage.setItem('exit8_char',JSON.stringify(LS.char));
+
+// === AUDIO ENGINE (WEB AUDIO) ===
+let actx=null,rainGain=null,audioReady=false,nextTrainT=0;
+function initAudio(){
+  if(actx)return;
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  actx=new AC();
+  const buf=actx.createBuffer(1,actx.sampleRate*2,actx.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  const src=actx.createBufferSource();src.buffer=buf;src.loop=true;
+  const filt=actx.createBiquadFilter();filt.type='bandpass';filt.frequency.value=1200;filt.Q.value=0.7;
+  rainGain=actx.createGain();rainGain.gain.value=0;
+  src.connect(filt);filt.connect(rainGain);rainGain.connect(actx.destination);src.start();
+  audioReady=true;nextTrainT=actx.currentTime+5;
+}
+function playTone(freq,dur=0.14,type='sine',vol=0.22){
+  if(LS.muted||!actx)return;if(actx.state==='suspended')actx.resume();
+  const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(vol*LS.vol,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+dur);
+  o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+dur);
+}
+function playTrainRumble(){
+  if(LS.muted||!actx)return;
+  const t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();
+  o.type='sawtooth';o.frequency.setValueAtTime(75,t);o.frequency.exponentialRampToValueAtTime(42,t+2.2);
+  g.gain.setValueAtTime(0.001,t);g.gain.linearRampToValueAtTime(0.14*LS.vol,t+0.8);g.gain.exponentialRampToValueAtTime(0.001,t+2.3);
+  o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+2.4);
+}
+function playEndingBirds(){
+  if(LS.muted||!actx)return;
+  [1200,1580,1880,1420,2100].forEach((f,i)=>setTimeout(()=>playTone(f,0.12,'triangle',0.14),i*260));
+}
+
+// === ANOMALIES (1..18) ===
+const ANOMALIES=[
+  {id:1,name:'Poster Raksasa',desc:'Salah satu poster di dinding membengkak sangat besar.',uv:false},
+  {id:2,name:'Poster Terbalik',desc:'Poster aturan dinding terpasang terbalik 180 derajat.',uv:false},
+  {id:3,name:'Poster Mata Mengawasi',desc:'Poster biasa berubah menjadi mata merah menatapmu.',uv:false},
+  {id:4,name:'Papan Tulis Merah',desc:'Papan tulis matematika berubah merah dan bertuliskan bahaya.',uv:false},
+  {id:5,name:'Lampu Plafon Berkedip',desc:'Lampu lorong berkedip-kedip tidak stabil.',uv:false},
+  {id:6,name:'Lampu Merah Darurat',desc:'Salah satu lampu neon plafon menyala merah darah.',uv:false},
+  {id:7,name:'Mati Listrik Total',desc:'Seluruh lampu lorong padam! Nyalakan senter UV.',uv:false},
+  {id:8,name:'Banjir Darah Lantai',desc:'Genangan merah besar muncul di lantai koridor.',uv:false},
+  {id:9,name:'Garis Kuning Putus',desc:'Garis pemandu tunanetra kuning berubah zig-zag berantakan.',uv:false},
+  {id:10,name:'Pintu Misterius',desc:'Muncul pintu besi misterius yang seharusnya tidak ada.',uv:false},
+  {id:11,name:'Teks Dinding Aneh',desc:'Muncul coretan besar "JANGAN MENOLEH" di dinding.',uv:false},
+  {id:12,name:'NPC Berlari Cepat',desc:'Pejalan kaki mendekat dengan kecepatan tidak wajar.',uv:false},
+  {id:13,name:'NPC Tanpa Wajah Raksasa',desc:'Sosok pejalan kaki membesar drastis hingga hampir menyentuh plafon.',uv:false},
+  {id:14,name:'NPC Berbalik Menatap',desc:'Pejalan kaki berhenti dan menatap tajam ke arahmu.',uv:false},
+  {id:15,name:'Slime Hijau Bermata',desc:'Slime hijau bermata meluncur di koridor (0.5x kecepatanmu).',uv:false},
+  {id:16,name:'Bayangan Hitam Mengejar',desc:'Sosok bayangan gelap merayap mengejarmu di lorong.',uv:false},
+  {id:17,name:'Jejak Tangan UV',desc:'Jejak tangan rahasia di dinding hanya terlihat dengan senter UV!',uv:true},
+  {id:18,name:'Simbol Rahasia UV',desc:'Kode peringatan tersembunyi di lantai hanya tampak di bawah sinar UV!',uv:true}
+];
+function drawAnomalyIllust(cvs,id){
+  const ctx=cvs.getContext('2d'),w=cvs.width,h=cvs.height;
+  ctx.fillStyle='#1e293b';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#334155';ctx.fillRect(0,h*0.7,w,h*0.3);
+  if(id===1){ctx.fillStyle='#2563eb';ctx.fillRect(w*0.2,h*0.06,w*0.6,h*0.66);}
+  else if(id===2){ctx.fillStyle='#e2e8f0';ctx.fillRect(w*0.3,h*0.15,w*0.4,h*0.48);ctx.fillStyle='#1e293b';ctx.fillRect(w*0.36,h*0.48,w*0.28,6);}
+  else if(id===3){ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(w/2,h*0.4,24,14,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#dc2626';ctx.beginPath();ctx.arc(w/2,h*0.4,8,0,Math.PI*2);ctx.fill();}
+  else if(id===4){ctx.fillStyle='#7f1d1d';ctx.fillRect(w*0.18,h*0.16,w*0.64,h*0.44);ctx.fillStyle='#fca5a5';ctx.font='bold 10px sans-serif';ctx.fillText('BAHAYA',w*0.32,h*0.42);}
+  else if(id===5||id===6){ctx.fillStyle=id===6?'#ef4444':'#fef08a';ctx.fillRect(w*0.22,h*0.1,w*0.56,8);}
+  else if(id===7){ctx.fillStyle='#020617';ctx.fillRect(0,0,w,h);ctx.fillStyle='#a855f7';ctx.beginPath();ctx.moveTo(w*0.2,h);ctx.lineTo(w*0.5,h*0.2);ctx.lineTo(w*0.8,h);ctx.fill();}
+  else if(id===8){ctx.fillStyle='#991b1b';ctx.beginPath();ctx.ellipse(w/2,h*0.82,36,10,0,0,Math.PI*2);ctx.fill();}
+  else if(id===9){ctx.strokeStyle='#facc15';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(12,h*0.86);ctx.lineTo(w*0.4,h*0.74);ctx.lineTo(w*0.6,h*0.9);ctx.lineTo(w-12,h*0.76);ctx.stroke();}
+  else if(id===10){ctx.fillStyle='#475569';ctx.fillRect(w*0.36,h*0.15,w*0.28,h*0.55);ctx.fillStyle='#facc15';ctx.beginPath();ctx.arc(w*0.59,h*0.45,3,0,Math.PI*2);ctx.fill();}
+  else if(id===11){ctx.fillStyle='#ef4444';ctx.font='bold 11px sans-serif';ctx.fillText('JANGAN',w*0.26,h*0.35);ctx.fillText('MENOLEH',w*0.23,h*0.52);}
+  else if(id===12||id===13||id===14){const sc=id===13?1.3:1;ctx.fillStyle='#0f172a';ctx.fillRect(w/2-9*sc,h*0.3,18*sc,h*0.4);ctx.fillStyle='#e2e8f0';ctx.beginPath();ctx.arc(w/2,h*0.24,8*sc,0,Math.PI*2);ctx.fill();if(id===14){ctx.fillStyle='#ef4444';ctx.fillRect(w/2-4,h*0.23,2,2);ctx.fillRect(w/2+2,h*0.23,2,2);}}
+  else if(id===15){ctx.fillStyle='#22c55e';ctx.beginPath();ctx.arc(w/2,h*0.66,18,Math.PI,0);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(w/2-6,h*0.58,4,0,Math.PI*2);ctx.arc(w/2+6,h*0.58,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#000';ctx.fillRect(w/2-7,h*0.57,2,2);ctx.fillRect(w/2+5,h*0.57,2,2);}
+  else if(id===16){ctx.fillStyle='#020617';ctx.beginPath();ctx.ellipse(w/2,h*0.5,14,24,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ef4444';ctx.fillRect(w/2-5,h*0.36,3,3);ctx.fillRect(w/2+2,h*0.36,3,3);}
+  else{ctx.fillStyle='#1e1b4b';ctx.fillRect(0,0,w,h);ctx.fillStyle='#c084fc';ctx.font='bold 14px sans-serif';ctx.fillText(id===17?'✋ UV':'⚠ UV',w*0.3,h*0.52);}
+}
+function unlockAnomaly(id){
+  if(!id||LS.unlocked.includes(id))return;
+  LS.unlocked.push(id);
+  localStorage.setItem('exit8_unlocked_anoms',JSON.stringify(LS.unlocked));
+  updateGalCounts();
+  const a=ANOMALIES.find(x=>x.id===id);if(!a)return;
+  $('anom-unlock-name').textContent=a.name;$('anom-unlock-desc').textContent=a.desc;
+  drawAnomalyIllust($('anom-unlock-cvs'),id);
+  $('anom-unlock-card').classList.remove('hidden');
+  setTimeout(()=>$('anom-unlock-card').classList.add('hidden'),4200);
+}
+function updateGalCounts(){
+  $('gal-count-lbl').textContent=`${LS.unlocked.length}/18`;
+  $('gal-hdr-cnt').textContent=`${LS.unlocked.length}/18`;
+}
+function renderGallery(){
+  const g=$('gal-grid');g.innerHTML='';
+  ANOMALIES.forEach(a=>{
+    const ok=LS.unlocked.includes(a.id),d=document.createElement('div');
+    d.className='gal-card'+(ok?' unlocked':'');
+    d.innerHTML=`<canvas width="140" height="86"></canvas><div class="gal-title">${ok?a.id+'. '+a.name:'🔒 ???'}</div><div class="gal-desc">${ok?a.desc:'Belum ditemukan'}</div>`;
+    g.appendChild(d);
+    const cvs=d.querySelector('canvas');
+    if(ok)drawAnomalyIllust(cvs,a.id);
+    else{const c=cvs.getContext('2d');c.fillStyle='#0f172a';c.fillRect(0,0,140,86);c.fillStyle='#475569';c.font='bold 24px sans-serif';c.fillText('?',63,52);}
+  });
+}
+
+// === MATH GENERATOR (6 BAB SMP KELAS 7) ===
+function generateMathQuestion(level){
+  const chap=rInt(1,6);let q='',ans=0,opts=new Set();
+  if(chap===1){const a=rInt(-12,18),b=rInt(-9,14),c=rInt(2,5);ans=a+b*c;q=`Hitung hasil dari ${a} + (${b}) × ${c} = ...`;}
+  else if(chap===2){const x=rInt(2,9),a=rInt(2,5),b=rInt(1,12),res=a*x+b;ans=x;q=`Jika ${a}x + ${b} = ${res}, berapakah nilai x?`;}
+  else if(chap===3){const p=rInt(4,12),d=rInt(2,6),hb=p*1000,hj=hb+d*1000;ans=d*1000;q=`Buku dibeli Rp${hb} dan dijual Rp${hj}. Untungnya adalah Rp...`;}
+  else if(chap===4){const k=rInt(2,6),a=rInt(2,5),b=rInt(3,7);ans=b*k;q=`Perbandingan A : B = ${a} : ${b}. Jika A = ${a*k}, maka B = ...`;}
+  else if(chap===5){const s=rInt(3,8)*10;ans=180-s;q=`Dua sudut saling berpelurus. Jika satu sudut ${s}°, besar sudut lainnya adalah ...°`;}
+  else{const p=rInt(5,14),l=rInt(4,10);ans=2*(p+l);q=`Keliling persegi panjang dengan panjang ${p} cm dan lebar ${l} cm adalah ... cm`;}
+  opts.add(ans);
+  while(opts.size<4){const off=rInt(-8,8);if(off!==0)opts.add(ans+off);}
+  const arr=[...opts].sort(()=>rng()-0.5);
+  return{q,opts:arr.map(String),ans:String(ans)};
+}
+
+// === THREE.JS CORE ===
+const canvas=$('game-canvas'),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x4b5563);
+scene.fog=new THREE.FogExp2(0x4b5563,0.022);
+const camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,0.1,120);
+scene.add(camera);
+
+// Neutral static lighting (consistent low/medium/high)
+const ambLight=new THREE.AmbientLight(0xffffff,0.35);scene.add(ambLight);
+const levelGroup=new THREE.Group();scene.add(levelGroup);
+const remoteGroup=new THREE.Group();scene.add(remoteGroup);
+
+// 3D Hand + UV Flashlight Viewmodel
+const handGroup=new THREE.Group();
+const sleeveMat=new THREE.MeshStandardMaterial({color:LS.char.shirt,roughness:0.75});
+const skinMat=new THREE.MeshStandardMaterial({color:0xf1c27d,roughness:0.65});
+const sleeveMesh=new THREE.Mesh(new THREE.BoxGeometry(0.11,0.11,0.34),sleeveMat);sleeveMesh.position.set(0,-0.02,0.12);
+const palmMesh=new THREE.Mesh(new THREE.BoxGeometry(0.085,0.075,0.13),skinMat);palmMesh.position.set(0,0,-0.08);
+const torchBody=new THREE.Mesh(new THREE.CylinderGeometry(0.024,0.02,0.22,14),new THREE.MeshStandardMaterial({color:0x1e293b,metalness:0.7,roughness:0.3}));
+torchBody.rotation.x=Math.PI/2;torchBody.position.set(0,0.03,-0.16);
+const torchLens=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.02,14),new THREE.MeshBasicMaterial({color:0xa855f7}));
+torchLens.rotation.x=Math.PI/2;torchLens.position.set(0,0.03,-0.27);
+const uvLight=new THREE.SpotLight(0xc084fc,0,18,Math.PI/5,0.45,1.2);
+uvLight.position.set(0,0.03,-0.26);
+const uvTarget=new THREE.Object3D();uvTarget.position.set(0,0,-5);
+handGroup.add(sleeveMesh,palmMesh,torchBody,torchLens,uvLight,uvTarget);
+uvLight.target=uvTarget;
+handGroup.position.set(0.32,-0.28,-0.46);handGroup.visible=false;
+camera.add(handGroup);
+
+// Textures helper
+function getTexRes(){return LS.gfx==='low'?256:LS.gfx==='high'?1024:512;}
+function makeTileTex(isFloor){
+  const s=getTexRes(),c=document.createElement('canvas');c.width=c.height=s;
+  const ctx=c.getContext('2d');ctx.fillStyle=isFloor?'#cbd5e1':'#d1d5db';ctx.fillRect(0,0,s,s);
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=Math.max(1,s/128);
+  const step=s/8;
+  for(let i=0;i<=8;i++){ctx.beginPath();ctx.moveTo(i*step,0);ctx.lineTo(i*step,s);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*step);ctx.lineTo(s,i*step);ctx.stroke();}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;
+}
+function makePosterTex(title,body,bg='#f8fafc',fg='#0f172a',accent='#2563eb'){
+  const c=document.createElement('canvas');c.width=256;c.height=360;const ctx=c.getContext('2d');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,256,360);
+  ctx.fillStyle=accent;ctx.fillRect(0,0,256,64);
+  ctx.fillStyle='#fff';ctx.font='bold 22px sans-serif';ctx.textAlign='center';ctx.fillText(title,128,40);
+  ctx.fillStyle=fg;ctx.font='bold 18px sans-serif';
+  body.split('\n').forEach((ln,i)=>ctx.fillText(ln,128,125+i*34));
+  return new THREE.CanvasTexture(c);
+}
+function makeSignTex(num){
+  const c=document.createElement('canvas');c.width=256;c.height=128;const ctx=c.getContext('2d');
+  ctx.fillStyle='#facc15';ctx.fillRect(0,0,256,128);ctx.strokeStyle='#111827';ctx.lineWidth=8;ctx.strokeRect(4,4,248,120);
+  ctx.fillStyle='#111827';ctx.font='900 44px sans-serif';ctx.textAlign='center';ctx.fillText('EXIT '+num,128,80);
+  return new THREE.CanvasTexture(c);
+}
+
+// === LEVEL STATE ===
+let gameActive=false,paused=false,quizOpen=false,lockerOpen=false,endingActive=false;
+let gameMode='normal',curLevel=0,curAnom=0,scoreOk=0,scoreTot=0,quizCounter=0,curSeed='EXIT8';
+let elapsedMs=0,timerRunning=false,lockerUnlocked=false,lockerCode='',lockerClues=['_','_','_'];
+let flashOn=false,stamina=100,isZoom=false,walkBob=0;
+let player={x:0,y:1.6,z:2.5,yaw:0,pitch:0};
+let customQuizList=[];
+let anomMeshes={},flickerLights=[],slimeObj=null,shadowObj=null,npcObj=null,endingTimer=0;
+let lockerPos=new THREE.Vector3(13.52,0,-4.2);
+
+function clearLevel(){
+  while(levelGroup.children.length)levelGroup.remove(levelGroup.children[0]);
+  anomMeshes={};flickerLights=[];slimeObj=null;shadowObj=null;npcObj=null;
+}
+function addWallBox(w,h,d,x,y,z,mat){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);levelGroup.add(m);return m;
+}
+function addFramedWallPanel(w,h,tex,x,y,z,ry,isRed=false){
+  const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=ry;
+  const fr=new THREE.Mesh(new THREE.BoxGeometry(w+0.12,h+0.12,0.03),new THREE.MeshStandardMaterial({color:isRed?0x7f1d1d:0x475569}));
+  fr.position.z=-0.022;
+  const pf=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:tex,side:THREE.DoubleSide,roughness:0.6}));
+  pf.position.z=0.002;
+  g.add(fr,pf);levelGroup.add(g);return g;
+}
+function addNeonLamp(x,z,anomId){
+  const dark=anomId===7,red=anomId===6&&Math.abs(z)<4;
+  const col=dark?0x111827:(red?0xef4444:0xffffff);
+  const m=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.45),new THREE.MeshBasicMaterial({color:col}));
+  m.position.set(x,3.55,z);levelGroup.add(m);
+  if(!dark){
+    const pl=new THREE.PointLight(red?0xef4444:0xffffff,0.72,15,1.4);
+    pl.position.set(x,3.2,z);levelGroup.add(pl);
+    if(anomId===5)flickerLights.push({mesh:m,light:pl});
+  }
+}
+
+function pickAnomalyAndSeg(lvl){
+  if(lvl===0){curAnom=0;return;}
+  if(gameMode==='seed')activeRngFn=makeSeededRng(`${curSeed}_ANOM_${lvl}`);
+  const hasAnom=rng()<0.62;
+  curAnom=hasAnom?rInt(1,18):0;
+  activeRngFn=Math.random;
+}
+
+function buildLevel(){
+  clearLevel();
+  endingActive=false;endingTimer=0;
+  scene.background=new THREE.Color(0x4b5563);
+  scene.fog=new THREE.FogExp2(0x4b5563,0.022);
+  ambLight.intensity=curAnom===7?0.06:0.35;
+
+  const wTex=makeTileTex(false);wTex.repeat.set(8,2);
+  const fTex=makeTileTex(true);fTex.repeat.set(8,8);
+  const wallMat=new THREE.MeshStandardMaterial({map:wTex,roughness:0.75});
+  const floorMat=new THREE.MeshStandardMaterial({map:fTex,roughness:0.65});
+  const ceilMat=new THREE.MeshStandardMaterial({color:0x475569,roughness:0.85});
+
+  // Main corridor segments: Seg1 (x:0, z:5..-15), Seg2 (z:-12.5, x:0..14), Seg3 (x:14.2, z:-14..1)
+  // Floors & ceilings
+  addWallBox(5.2,0.2,24,0,-0.1,-5,floorMat);addWallBox(5.2,0.2,24,0,3.7,-5,ceilMat);
+  addWallBox(17,0.2,5.2,8.5,-0.1,-12.5,floorMat);addWallBox(17,0.2,5.2,8.5,3.7,-12.5,ceilMat);
+  addWallBox(5.2,0.2,20,14.2,-0.1,-7,floorMat);addWallBox(5.2,0.2,20,14.2,3.7,-7,ceilMat);
+
+  // Back stairs alcove (right behind spawn z:5..21) + Front stairs alcove (x:14.2, z:-15..-24)
+  addWallBox(5.2,0.2,17,-6.5,-0.1,12.5,floorMat);
+  addWallBox(12,0.2,5.2,-3.2,-0.1,5.2,floorMat);
+  addWallBox(5.2,0.2,12,14.2,1.2,-20,floorMat);
+
+  // Corridor Walls
+  addWallBox(0.3,3.8,14,-2.6,1.8,-7,wallMat); // Seg1 left
+  addWallBox(0.3,3.8,17,2.6,1.8,-1.5,wallMat); // Seg1 right
+  addWallBox(14,3.8,0.3,4.5,1.8,-15.1,wallMat); // Corner 1 far
+  addWallBox(10,3.8,0.3,7.5,1.8,-9.9,wallMat); // Seg2 inner
+  addWallBox(0.3,3.8,18,16.8,1.8,-6,wallMat); // Seg3 outer
+  addWallBox(0.3,3.8,14,11.6,1.8,-3,wallMat); // Seg3 inner
+  addWallBox(5.6,3.8,0.3,0,1.8,7.6,wallMat); // Spawn back wall close to back stairs turn
+  addWallBox(5.6,3.8,0.3,14.2,1.8,3.2,wallMat); // Seg3 end cap
+
+  // Tactile yellow guide line (left side in Seg1, turns cleanly)
+  const yMat=new THREE.MeshStandardMaterial({color:curAnom===9?0xfef08a:0xfacc15,roughness:0.4});
+  if(curAnom===9){
+    for(let i=0;i<7;i++)addWallBox(0.45,0.02,1.6,(i%2?0.8:-1.5),0.01,4-i*2.4,yMat);
+  }else{
+    addWallBox(0.45,0.02,16,-1.45,0.01,-4,yMat);
+    addWallBox(13,0.02,0.45,5,-0.01,-11.8,yMat);
+    addWallBox(0.45,0.02,11,13.1,0.01,-7,yMat);
+  }
+
+  // Ceiling Lamps
+  [-11,-5,1].forEach(z=>addNeonLamp(0,z,curAnom));
+  [5,10].forEach(x=>addNeonLamp(x,-12.5,curAnom));
+  [-9,-3].forEach(z=>addNeonLamp(14.2,z,curAnom));
+
+  // Posters & Chalkboard (Guaranteed visible, z=+0.002)
+  addFramedWallPanel(1.3,1.8,makePosterTex('ご案内 Guide','Amati lorong\ndengan teliti.\nAnomali = Balik\nNormal = Maju','#f8fafc','#0f172a','#0284c7'),-2.42,1.8,-2.5,Math.PI/2);
+  const pScale=curAnom===1?2.1:1;
+  const pTex=curAnom===3?makePosterTex('MATA','AKU MELIHATMU\nJANGAN MENOLEH','#111827','#ef4444','#7f1d1d'):makePosterTex('PERHATIAN','Laporkan barang\nhilang ke petugas\nstasiun bawah tanah','#fefce8','#1e293b','#ca8a04');
+  const pMesh=addFramedWallPanel(1.2*pScale,1.6*pScale,pTex,2.42,1.8,-6.5,-Math.PI/2);
+  if(curAnom===2)pMesh.rotation.z=Math.PI;
+
+  const cbTex=curAnom===4?makePosterTex('BAHAYA!','TINGGALKAN LORONG\nSEKARANG JUGA!','#7f1d1d','#fecaca','#991b1b'):makePosterTex('UJIAN MATEMATIKA','SMP KELAS 7\nBruto = Neto + Tara\nPeriksa Anomali!','#14532d','#f8fafc','#854d0e');
+  addFramedWallPanel(2.6,1.35,cbTex,7.2,1.85,-14.92,0);
+
+  // Exit Sign
+  addFramedWallPanel(1.5,0.75,makeSignTex(curLevel),0,2.8,-10.5,0);
+  addFramedWallPanel(1.5,0.75,makeSignTex(curLevel),14.2,2.8,-13.5,0);
+
+  // Secret Iron Locker in Segmen 3 (x=13.52, z=-4.2 — just inside outer wall x=16.8 -> placed on inner wall x=11.8 facing right or outer 16.5; let's place right beside Seg3 walkway at x=12.15, z=-4.2)
+  lockerPos.set(12.2,0,-4.2);
+  const lkBody=new THREE.Mesh(new THREE.BoxGeometry(0.7,2.0,0.85),new THREE.MeshStandardMaterial({color:0x334155,metalness:0.6,roughness:0.35}));
+  lkBody.position.set(12.0,1.0,-4.2);levelGroup.add(lkBody);
+  const lkPad=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.22,0.16),new THREE.MeshBasicMaterial({color:lockerUnlocked?0x22c55e:0xef4444}));
+  lkPad.position.set(12.37,1.25,-4.2);levelGroup.add(lkPad);
+
+  // Stairs geometry visual
+  for(let i=0;i<8;i++){
+    addWallBox(4.8,0.25,0.6,14.2,0.15+i*0.25,-15.2-i*0.65,floorMat); // Front Up
+    addWallBox(4.8,0.25,0.6,-6.5,-0.15-i*0.25,9+i*0.65,floorMat); // Back Down
+  }
+
+  // Specific Anomaly Objects
+  if(curAnom===8){const bl=new THREE.Mesh(new THREE.CircleGeometry(2.1,24),new THREE.MeshStandardMaterial({color:0x7f1d1d,roughness:0.15}));bl.rotation.x=-Math.PI/2;bl.position.set(0,0.02,-7);levelGroup.add(bl);}
+  if(curAnom===10){addWallBox(0.15,2.3,1.1,2.45,1.15,-2,new THREE.MeshStandardMaterial({color:0x475569,metalness:0.5}));}
+  if(curAnom===11){addFramedWallPanel(2.4,0.8,makePosterTex('PERINGATAN','JANGAN MENOLEH','#0f172a','#ef4444','#dc2626'),16.6,1.8,-6,-Math.PI/2);}
+  if(curAnom===15){
+    const sg=new THREE.Group();
+    const sb=new THREE.Mesh(new THREE.SphereGeometry(0.45,16,12,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color:0x22c55e,roughness:0.2,transparent:true,opacity:0.88}));
+    const e1=new THREE.Mesh(new THREE.SphereGeometry(0.08,8,8),new THREE.MeshBasicMaterial({color:0xffffff}));e1.position.set(-0.14,0.24,0.35);
+    const e2=e1.clone();e2.position.x=0.14;
+    sg.add(sb,e1,e2);sg.position.set(0,0,-12);levelGroup.add(sg);slimeObj=sg;
+  }
+  if(curAnom===16){
+    const sh=new THREE.Mesh(new THREE.CapsuleGeometry?new THREE.BoxGeometry(0.6,1.7,0.4):new THREE.BoxGeometry(0.6,1.7,0.4),new THREE.MeshBasicMaterial({color:0x020617}));
+    sh.position.set(14.2,0.9,-12);levelGroup.add(sh);shadowObj=sh;
+  }
+  if(curAnom===17||curAnom===18){
+    const uvMat=new THREE.MeshStandardMaterial({map:makePosterTex(curAnom===17?'✋ UV':'⚠ KODE',curAnom===17?'TOLONG AKU':'ANOMALI TERDETEKSI','#1e1b4b','#e9d5ff','#7e22ce'),transparent:true,opacity:0.06,emissive:0x7e22ce,emissiveIntensity:0});
+    const um=new THREE.Mesh(new THREE.PlaneGeometry(1.5,1.2),uvMat);
+    if(curAnom===17){um.position.set(-2.4,1.5,-8.5);um.rotation.y=Math.PI/2;}
+    else{um.position.set(6.5,0.03,-12.5);um.rotation.x=-Math.PI/2;}
+    levelGroup.add(um);anomMeshes.uvSecret=um;
+  }
+
+  // NPC Pedestrian (always spawns on floors > 0, modified by anom 12,13,14)
+  if(curLevel>0||curAnom>0){
+    const ng=new THREE.Group();
+    const sc=curAnom===13?1.55:1;ng.scale.set(sc,sc,sc);
+    const nb=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.85,0.3),new THREE.MeshStandardMaterial({color:0x334155}));nb.position.y=0.95;
+    const nh=new THREE.Mesh(new THREE.BoxGeometry(0.36,0.36,0.36),new THREE.MeshStandardMaterial({color:0xe2c7a8}));nh.position.y=1.62;
+    const nl1=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.55,0.22),new THREE.MeshStandardMaterial({color:0x0f172a}));nl1.position.set(-0.14,0.28,0);
+    const nl2=nl1.clone();nl2.position.x=0.14;
+    ng.add(nb,nh,nl1,nl2);ng.position.set(1.1,0,-13);levelGroup.add(ng);
+    npcObj={g:ng,speed:curAnom===12?5.2:1.9,stare:curAnom===14};
+  }
+}
+
+// === SKY ENDING ===
+function startExit8Ending(){
+  endingActive=true;endingTimer=0;
+  scene.background=new THREE.Color(0x7dd3fc);
+  scene.fog=new THREE.FogExp2(0xbae6fd,0.006);
+  ambLight.intensity=0.95;
+  const sun=new THREE.Mesh(new THREE.SphereGeometry(3,16,16),new THREE.MeshBasicMaterial({color:0xfef08a}));
+  sun.position.set(14,18,-52);levelGroup.add(sun);
+  const terrace=new THREE.Mesh(new THREE.BoxGeometry(18,0.3,30),new THREE.MeshStandardMaterial({color:0xe2e8f0,roughness:0.6}));
+  terrace.position.set(14.2,2.85,-29);levelGroup.add(terrace);
+  playEndingBirds();
+  showToast('🌤 Keluar menuju langit biru cerah!');
+}
+
+// === COLLISION & BOUNDARIES ===
+function inCorr(x,z){
+  if(endingActive&&x>9&&x<19&&z<-13&&z>-44)return true;
+  if(x>-2.2&&x<2.2&&z<=6.8&&z>=-14.5)return true; // Seg1
+  if(z>-14.5&&z<-10.4&&x>=-2.2&&x<=16.2)return true; // Seg2
+  if(x>12.1&&x<16.2&&z<=2.6&&z>=-21)return true; // Seg3 + Front stairs
+  if(z>2.8&&z<7.2&&x>=-8.5&&x<=2.2)return true; // Turn to Back stairs
+  if(x>-8.5&&x<-4.4&&z>=2.8&&z<=21)return true; // Back stairs
+  return false;
+}
+function getFloorY(x,z){
+  if(endingActive&&z<-18)return 3.0;
+  if(x>12&&z<-15)return clamp((-15-z)*0.38,0,2.8);
+  if(x<-4&&z>8.5)return -clamp((z-8.5)*0.38,0,2.8);
+  return 0;
+}
+
+// === MULTIPLAYER (UP TO 8 PLAYERS HOST-RELAY) ===
+const PEER_CFG={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}],iceCandidatePoolSize:10}};
+const MAX_MP_PLAYERS=8;
+let peer=null,myRole=null,myRoomCode='',myPeerId='',mpHostId='';
+let peers={},remotePlayers={},mpLobbyPlayers=[],mpPosTimer=null,mpPingTimer=null;
+
+function setMpStatus(cls,txt){$('mp-dot').className='dot '+cls;$('mp-status').textContent=txt;}
+function makeNameSprite(name){
+  const c=document.createElement('canvas');c.width=256;c.height=64;const ctx=c.getContext('2d');
+  ctx.fillStyle='rgba(15,23,42,0.82)';ctx.fillRect(16,12,224,40);
+  ctx.strokeStyle='#facc15';ctx.lineWidth=3;ctx.strokeRect(16,12,224,40);
+  ctx.fillStyle='#ffffff';ctx.font='bold 24px sans-serif';ctx.textAlign='center';ctx.fillText((name||'Pemain').slice(0,14),128,40);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));
+  sp.position.set(0,2.18,0);sp.scale.set(1.45,0.36,1);return sp;
+}
+function ensureRemoteAvatar(id,name,ch){
+  ch=ch||{shirt:'#2563eb',hair:'short',cap:'none',glasses:false,gold:false};
+  if(remotePlayers[id]){
+    const rp=remotePlayers[id];
+    rp.body.material.color.set(ch.gold?'#f59e0b':ch.shirt);
+    rp.cap.visible=ch.gold||ch.cap!=='none';
+    rp.cap.material.color.set(ch.gold?'#fde047':(ch.cap==='beanie'?'#dc2626':'#1e40af'));
+    rp.glasses.visible=!!ch.glasses;
+    if(rp.name!==name){rp.name=name;rp.group.remove(rp.tag);rp.tag=makeNameSprite(name);rp.group.add(rp.tag);}
+    return rp;
+  }
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(0.54,0.8,0.28),new THREE.MeshStandardMaterial({color:ch.gold?'#f59e0b':ch.shirt}));body.position.y=0.98;
+  const head=new THREE.Mesh(new THREE.BoxGeometry(0.36,0.36,0.36),new THREE.MeshStandardMaterial({color:0xf1c27d}));head.position.y=1.62;
+  const cap=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.14,0.4),new THREE.MeshStandardMaterial({color:ch.gold?'#fde047':'#1e40af'}));cap.position.y=1.84;cap.visible=ch.gold||ch.cap!=='none';
+  const glasses=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.08,0.06),new THREE.MeshBasicMaterial({color:0x0f172a}));glasses.position.set(0,1.64,0.18);glasses.visible=!!ch.glasses;
+  const armL=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.7,0.18),new THREE.MeshStandardMaterial({color:ch.gold?'#f59e0b':ch.shirt}));armL.position.set(-0.37,0.98,0);
+  const armR=armL.clone();armR.position.x=0.37;
+  const legL=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.58,0.22),new THREE.MeshStandardMaterial({color:0x1e293b}));legL.position.set(-0.14,0.29,0);
+  const legR=legL.clone();legR.position.x=0.14;
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(0.45,1.8,12,1,true),new THREE.MeshBasicMaterial({color:0xc084fc,transparent:true,opacity:0.25,side:THREE.DoubleSide}));
+  cone.rotation.x=Math.PI/2;cone.position.set(0.35,1.15,1.1);cone.visible=false;
+  const tag=makeNameSprite(name);
+  g.add(body,head,cap,glasses,armL,armR,legL,legR,cone,tag);
+  remoteGroup.add(g);
+  remotePlayers[id]={group:g,body,cap,glasses,armL,armR,legL,legR,cone,tag,name,tx:0,ty:0,tz:2.5,tyaw:0,run:false,flash:false};
+  return remotePlayers[id];
+}
+function removeRemoteAvatar(id){
+  if(!remotePlayers[id])return;
+  remoteGroup.remove(remotePlayers[id].group);delete remotePlayers[id];
+}
+function resetMpState(){
+  if(mpPosTimer)clearInterval(mpPosTimer);if(mpPingTimer)clearInterval(mpPingTimer);
+  mpPosTimer=null;mpPingTimer=null;
+  Object.keys(peers).forEach(k=>{try{peers[k].ctrl&&peers[k].ctrl.close();peers[k].pos&&peers[k].pos.close();}catch(e){}});
+  peers={};Object.keys(remotePlayers).forEach(removeRemoteAvatar);mpLobbyPlayers=[];
+  if(peer){try{peer.destroy();}catch(e){}peer=null;}
+}
+function rebuildHostRoster(){
+  const list=[{id:myPeerId,name:LS.char.name,char:LS.char,isHost:true}];
+  Object.keys(peers).forEach(pid=>list.push({id:pid,name:peers[pid].name||'Pemain',char:peers[pid].char||LS.char,isHost:false}));
+  mpLobbyPlayers=list;
+  broadcastCtrl({type:'roster',players:list});
+  renderMpLobby();
+}
+function renderMpLobby(){
+  $('mp-lobby-box').classList.remove('hidden');
+  $('mp-lobby-count').textContent=`Pemain Terhubung (${mpLobbyPlayers.length}/${MAX_MP_PLAYERS}):`;
+  $('mp-lobby-names').innerHTML=mpLobbyPlayers.map(p=>`<span class="mp-player-chip">${p.name}${p.isHost?' (Host)':''}</span>`).join('');
+  const sb=$('btn-mp-start');
+  if(myRole==='host'){
+    sb.classList.remove('hidden');
+    sb.textContent=`▶ MULAI BERMAIN (${mpLobbyPlayers.length}/${MAX_MP_PLAYERS})`;
+    sb.disabled=mpLobbyPlayers.length<1;
+  }else sb.classList.add('hidden');
+}
+function broadcastCtrl(msg,skipId){
+  Object.keys(peers).forEach(pid=>{
+    if(pid===skipId)return;
+    const c=peers[pid].ctrl;if(c&&c.open)try{c.send(msg);}catch(e){}
+  });
+}
+function relayAllPositions(){
+  if(myRole!=='host')return;
+  const list=[{id:myPeerId,x:player.x,y:player.y-1.6,z:player.z,yaw:player.yaw,run:isSprintingNow,flash:flashOn}];
+  Object.keys(peers).forEach(pid=>{if(peers[pid].state)list.push(peers[pid].state);});
+  const pkt={type:'pos_batch',list};
+  Object.keys(peers).forEach(pid=>{
+    const c=peers[pid].pos||peers[pid].ctrl;
+    if(c&&c.open)try{c.send(pkt);}catch(e){}
+  });
+}
+
+function hostRoom(){
+  resetMpState();myRole='host';myRoomCode=rand4();myPeerId='EXIT8-'+myRoomCode;
+  setMpStatus('wait','Menghubungkan ke server PeerJS...');
+  $('mp-host-box').classList.remove('hidden');$('mp-join-box').classList.add('hidden');
+  $('mp-room-code').textContent=myRoomCode;
+  peer=new Peer(myPeerId,PEER_CFG);
+  peer.on('open',()=>{
+    setMpStatus('ok',`Room ${myRoomCode} Siap! Bagikan kode ke maksimal 7 teman.`);
+    rebuildHostRoster();
+    mpPosTimer=setInterval(relayAllPositions,50);
+  });
+  peer.on('connection',conn=>{
+    const pid=conn.peer;
+    if(!peers[pid]&&Object.keys(peers).length>=MAX_MP_PLAYERS-1){
+      conn.on('open',()=>{conn.send({type:'room_full'});setTimeout(()=>conn.close(),300);});return;
+    }
+    if(!peers[pid])peers[pid]={ctrl:null,pos:null,name:'Pemain',char:LS.char,level:0,state:null};
+    if(conn.label==='pos')peers[pid].pos=conn;else peers[pid].ctrl=conn;
+    conn.on('data',d=>{
+      if(!d||!d.type)return;
+      if(d.type==='hello'||d.type==='char_sync'){
+        peers[pid].name=d.name||'Pemain';peers[pid].char=d.char||LS.char;
+        ensureRemoteAvatar(pid,peers[pid].name,peers[pid].char);
+        rebuildHostRoster();
+        setMpStatus('ok',`Terhubung (${mpLobbyPlayers.length}/${MAX_MP_PLAYERS} pemain)`);
+      }else if(d.type==='pos'){
+        peers[pid].state={id:pid,x:d.x,y:d.y,z:d.z,yaw:d.yaw,run:d.run,flash:d.flash};
+        const rp=remotePlayers[pid];
+        if(rp){rp.tx=d.x;rp.ty=d.y;rp.tz=d.z;rp.tyaw=d.yaw;rp.run=d.run;rp.flash=d.flash;}
+        relayAllPositions();
+      }else if(d.type==='level_event'){
+        peers[pid].level=d.level;
+        broadcastCtrl({...d,id:pid,name:peers[pid].name},pid);
+        showToast(d.won?`🏆 ${peers[pid].name} MENANG EXIT 8!`:`🏃 ${peers[pid].name} di Exit ${d.level}`);
+      }else if(d.type==='ping'){
+        if(peers[pid].ctrl&&peers[pid].ctrl.open)peers[pid].ctrl.send({type:'pong',ts:d.ts});
+      }
+    });
+    conn.on('close',()=>{
+      if(conn.label==='pos')return;
+      delete peers[pid];removeRemoteAvatar(pid);rebuildHostRoster();
+      setMpStatus('ok',`Room ${myRoomCode} (${mpLobbyPlayers.length}/${MAX_MP_PLAYERS} pemain)`);
+    });
+  });
+  peer.on('error',err=>{
+    if(err.type==='unavailable-id'){hostRoom();return;}
+    setMpStatus('err','Error jaringan: '+err.type);
+  });
+}
+
+function joinRoom(code){
+  code=(code||$('mp-join-input').value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(code.length<4){showToast('Kode room minimal 4 karakter!');return;}
+  resetMpState();myRole='client';myRoomCode=code;mpHostId='EXIT8-'+code;
+  myPeerId='EXIT8-C-'+rand4()+'-'+Date.now().toString(36).slice(-3);
+  setMpStatus('wait',`Menghubungkan ke room ${code}...`);
+  peer=new Peer(myPeerId,PEER_CFG);
+  peer.on('open',()=>{
+    const ctrl=peer.connect(mpHostId,{label:'ctrl',reliable:true});
+    const pos=peer.connect(mpHostId,{label:'pos',reliable:false});
+    peers[mpHostId]={ctrl,pos,name:'Host',char:LS.char};
+    ctrl.on('open',()=>{
+      ctrl.send({type:'hello',name:LS.char.name,char:LS.char});
+      setMpStatus('ok',`Terhubung ke Room ${code}!`);
+      mpPosTimer=setInterval(()=>{
+        const c=peers[mpHostId]?.pos||peers[mpHostId]?.ctrl;
+        if(c&&c.open)c.send({type:'pos',x:player.x,y:player.y-1.6,z:player.z,yaw:player.yaw,run:isSprintingNow,flash:flashOn});
+      },50);
+      mpPingTimer=setInterval(()=>{if(ctrl.open)ctrl.send({type:'ping',ts:performance.now()});},1500);
+    });
+    const onData=d=>{
+      if(!d||!d.type)return;
+      if(d.type==='room_full'){setMpStatus('err','Room penuh (maks 8 pemain)!');resetMpState();}
+      else if(d.type==='roster'){
+        mpLobbyPlayers=d.players||[];
+        const activeIds=new Set(mpLobbyPlayers.map(x=>x.id));
+        Object.keys(remotePlayers).forEach(id=>{if(!activeIds.has(id))removeRemoteAvatar(id);});
+        mpLobbyPlayers.forEach(p=>{if(p.id!==myPeerId)ensureRemoteAvatar(p.id,p.name,p.char);});
+        renderMpLobby();
+      }else if(d.type==='pos_batch'){
+        (d.list||[]).forEach(it=>{
+          if(it.id===myPeerId)return;
+          const pInfo=mpLobbyPlayers.find(x=>x.id===it.id);
+          const rp=ensureRemoteAvatar(it.id,pInfo?pInfo.name:'Pemain',pInfo?pInfo.char:null);
+          rp.tx=it.x;rp.ty=it.y;rp.tz=it.z;rp.tyaw=it.yaw;rp.run=it.run;rp.flash=it.flash;
+        });
+      }else if(d.type==='start_race'){
+        customQuizList=d.customQuestions||[];
+        startGame('mp');
+      }else if(d.type==='level_event'){
+        showToast(d.won?`🏆 ${d.name} MENANG EXIT 8!`:`🏃 ${d.name} di Exit ${d.level}`);
+      }else if(d.type==='pong'){
+        const ms=Math.round(performance.now()-d.ts);
+        setMpStatus('ok',`Terhubung Room ${code} (${mpLobbyPlayers.length}/${MAX_MP_PLAYERS}) • Ping: ${ms} ms`);
+      }
+    };
+    ctrl.on('data',onData);pos.on('data',onData);
+    ctrl.on('close',()=>{setMpStatus('err','Koneksi ke Host terputus.');});
+  });
+  peer.on('error',err=>setMpStatus('err','Gagal gabung: '+err.type));
+}
+
+// === CUSTOM QUIZ HOST UI ===
+function addCustomQuizItem(qVal='',aVal=''){
+  const list=$('mp-q-list');if(list.children.length>=5)return;
+  const div=document.createElement('div');div.className='q-item';
+  div.innerHTML=`<input type="text" class="cq-q" placeholder="Tulis soal (mis. 5 x 6 = ?)" value="${qVal}" style="margin-bottom:5px"><input type="text" class="cq-a" placeholder="Jawaban benar (angka/kata)" value="${aVal}">`;
+  list.appendChild(div);
+}
+function collectCustomQuiz(){
+  if(!$('mp-custom-quiz-toggle').checked)return[];
+  const out=[];
+  document.querySelectorAll('#mp-q-list .q-item').forEach(el=>{
+    const q=el.querySelector('.cq-q').value.trim(),a=el.querySelector('.cq-a').value.trim();
+    if(q&&a){
+      const n=Number(a),opts=new Set([a]);
+      while(opts.size<4)opts.add(isNaN(n)?a+opts.size:String(n+rInt(-5,6)||n+7));
+      out.push({q,opts:[...opts].sort(()=>Math.random()-0.5),ans:a});
+    }
+  });
+  return out;
+}
+
+// === GAME FLOW ===
+function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.add('hidden'),2600);}
+function closePanels(){['panel-mp','panel-char','panel-galeri','panel-lb','panel-set'].forEach(id=>$(id).classList.add('hidden'));}
+
+function resetPlayerPos(){
+  player={x:0,y:1.6,z:2.5,yaw:0,pitch:0};
+  flashOn=false;handGroup.visible=false;uvLight.intensity=0;
+  $('hud-flash-lbl').textContent='[SENTER: OFF]';
+}
+
+function startGame(mode){
+  initAudio();
+  closePanels();$('start-screen').classList.add('hidden');$('end-screen').classList.add('hidden');$('pause-screen').classList.add('hidden');
+  $('hud').classList.remove('hidden');$('crosshair').classList.remove('hidden');
+  gameMode=mode;gameActive=true;paused=false;quizOpen=false;lockerOpen=false;
+  curLevel=0;scoreOk=0;scoreTot=0;quizCounter=0;elapsedMs=0;timerRunning=false;
+  lockerClues=['_','_','_'];lockerUnlocked=LS.gold;
+  curSeed=($('seed-input').value||'EXIT8').toUpperCase();
+  pickAnomalyAndSeg(0);buildLevel();resetPlayerPos();updateHud();
+  if(mode!=='mp')customQuizList=[];
+}
+
+function updateHud(){
+  $('hud-exit').textContent=gameMode==='endless'?`EXIT ${curLevel} / ∞`:`EXIT ${curLevel} / 8`;
+  $('hud-score').textContent=`SKOR: ${scoreOk}/${scoreTot}`;
+  $('hud-clue').textContent=`PETUNJUK KODE LOKER: ${lockerClues.join(' - ')}`;
+  const m=String(Math.floor(elapsedMs/60000)).padStart(2,'0'),s=String(Math.floor((elapsedMs%60000)/1000)).padStart(2,'0'),cs=String(Math.floor((elapsedMs%1000)/10)).padStart(2,'0');
+  $('hud-timer').textContent=`WAKTU: ${m}:${s}.${cs}`;
+}
+
+function handleStairsChoice(wentFront){
+  const ok=(wentFront&&curAnom===0)||(!wentFront&&curAnom!==0);
+  if(ok){
+    openMathQuiz(curAnom);
+  }else{
+    playTone(150,0.35,'sawtooth',0.25);
+    $('flash-fx').style.background='rgba(220,38,38,0.45)';$('flash-fx').style.opacity='1';
+    setTimeout(()=>$('flash-fx').style.opacity='0',350);
+    curLevel=0;
+    showToast('Salah pilih tangga! Kembali ke Exit 0.');
+    pickAnomalyAndSeg(0);buildLevel();resetPlayerPos();updateHud();
+    if(gameMode==='mp')sendLevelEvent(false,false);
+  }
+}
+
+function sendLevelEvent(ok,won){
+  const pkt={type:'level_event',level:curLevel,ok,won,name:LS.char.name};
+  if(myRole==='host')broadcastCtrl(pkt);
+  else if(peers[mpHostId]?.ctrl?.open)peers[mpHostId].ctrl.send(pkt);
+}
+
+function openMathQuiz(anomJustSolved){
+  quizOpen=true;if(document.pointerLockElement)document.exitPointerLock();
+  let item=null;
+  if(customQuizList.length&&quizCounter<customQuizList.length){
+    item=customQuizList[quizCounter];
+  }else{
+    if(gameMode==='seed')activeRngFn=makeSeededRng(`${curSeed}_Q_${quizCounter}`);
+    item=generateMathQuestion(curLevel);
+    activeRngFn=Math.random;
+  }
+  $('math-badge').textContent=`Exit ${curLevel} → ${curLevel+1}`;
+  $('math-q').textContent=item.q;$('math-fb').textContent='';
+  const box=$('math-opts');box.innerHTML='';
+  item.opts.forEach(opt=>{
+    const b=document.createElement('button');b.className='btn btn-dark';b.textContent=opt;
+    b.onclick=()=>{
+      scoreTot++;
+      if(opt===item.ans){
+        scoreOk++;quizCounter++;playTone(660,0.18,'triangle',0.25);
+        // Secret locker clue from last digit of first 3 correct answers
+        const dStr=String(opt).replace(/[^0-9]/g,'');
+        const dig=dStr?dStr[dStr.length-1]:'7';
+        const slot=lockerClues.indexOf('_');if(slot!==-1)lockerClues[slot]=dig;
+        if(anomJustSolved>0)unlockAnomaly(anomJustSolved);
+        curLevel++;
+        $('math-modal').classList.add('hidden');quizOpen=false;
+        if((gameMode==='normal'||gameMode==='seed'||gameMode==='mp')&&curLevel>=8){
+          if(gameMode==='mp')sendLevelEvent(true,true);
+          startExit8Ending();
+        }else{
+          pickAnomalyAndSeg(curLevel);buildLevel();resetPlayerPos();updateHud();
+          if(gameMode==='mp')sendLevelEvent(true,false);
+          showToast(`Benar! Lanjut ke Exit ${curLevel}`);
+        }
+      }else{
+        playTone(160,0.3,'sawtooth',0.22);
+        $('math-fb').style.color='#f87171';$('math-fb').textContent='Jawaban salah! Kembali ke Exit 0.';
+        setTimeout(()=>{
+          $('math-modal').classList.add('hidden');quizOpen=false;
+          curLevel=0;pickAnomalyAndSeg(0);buildLevel();resetPlayerPos();updateHud();
+        },900);
+      }
+    };
+    box.appendChild(b);
+  });
+  $('math-modal').classList.remove('hidden');
+}
+
+function finishVictory(){
+  gameActive=false;timerRunning=false;if(document.pointerLockElement)document.exitPointerLock();
+  $('hud').classList.add('hidden');$('crosshair').classList.add('hidden');
+  const m=String(Math.floor(elapsedMs/60000)).padStart(2,'0'),s=String(Math.floor((elapsedMs%60000)/1000)).padStart(2,'0'),cs=String(Math.floor((elapsedMs%1000)/10)).padStart(2,'0');
+  const tStr=`${m}:${s}.${cs}`;
+  LS.lb.push({name:LS.char.name,ms:Math.round(elapsedMs),str:tStr,mode:gameMode});
+  LS.lb.sort((a,b)=>a.ms-b.ms);LS.lb=LS.lb.slice(0,5);
+  localStorage.setItem('exit8_leaderboard',JSON.stringify(LS.lb));
+  $('end-summary').innerHTML=`Waktu Speedrun: <b style="color:#facc15">${tStr}</b><br>Skor Matematika: <b>${scoreOk}/${scoreTot}</b>`;
+  renderLeaderboard($('end-lb'));
+  $('end-screen').classList.remove('hidden');
+}
+
+function renderLeaderboard(target){
+  target.innerHTML=LS.lb.length?LS.lb.map((r,i)=>`<div class="lb-row"><span>#${i+1} ${r.name} (${r.mode})</span><b style="color:#facc15">${r.str}</b></div>`).join(''):'<p style="font-size:13px;color:#94a3b8">Belum ada catatan waktu.</p>';
+}
+
+// === LOCKER PUZZLE ===
+function isNearLocker(){return gameActive&&!quizOpen&&!endingActive&&Math.hypot(player.x-lockerPos.x,player.z-lockerPos.z)<2.6;}
+function openLockerModal(){
+  lockerOpen=true;if(document.pointerLockElement)document.exitPointerLock();
+  $('locker-input').value='';$('locker-modal').classList.remove('hidden');
+}
+$('btn-open-locker').onclick=openLockerModal;
+$('btn-close-locker').onclick=()=>{$('locker-modal').classList.add('hidden');lockerOpen=false;};
+$('btn-submit-locker').onclick=()=>{
+  const code=lockerClues.join('');
+  if(lockerClues.includes('_')){showToast('Kumpulkan 3 digit kode dulu dengan menjawab soal matematika!');return;}
+  if($('locker-input').value.trim()===code){
+    lockerUnlocked=true;LS.gold=true;LS.char.gold=true;LS.char.shirt='#f59e0b';
+    localStorage.setItem('exit8_gold_skin','1');saveChar();applyHandAndPreview();
+    playTone(880,0.25,'triangle',0.3);
+    $('locker-modal').classList.add('hidden');lockerOpen=false;
+    showToast('✨ Loker terbuka! Skin "Agent Emas Exit 8" terbuka permanen!');
+  }else{
+    playTone(140,0.25,'sawtooth',0.2);showToast('Kode loker salah!');
+  }
+};
+
+// === INPUT & CONTROLS ===
+const keys={};let mobRun=false,joyX=0,joyY=0,isSprintingNow=false;
+window.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(e.code==='KeyF'&&gameActive&&!paused&&!quizOpen)toggleFlash();
+  if(e.code==='KeyZ'&&gameActive&&!paused&&!quizOpen){isZoom=!isZoom;}
+  if(e.code==='KeyP'&&gameActive&&!quizOpen&&!lockerOpen)togglePause();
+  if(e.code==='KeyE'&&gameActive&&!paused&&!quizOpen){if(isNearLocker())openLockerModal();else player.yaw-=0.4;}
+});
+window.addEventListener('keyup',e=>{keys[e.code]=false;});
+canvas.addEventListener('click',()=>{if(gameActive&&!paused&&!quizOpen&&!lockerOpen&&!('ontouchstart'in window))canvas.requestPointerLock&&canvas.requestPointerLock();});
+canvas.addEventListener('contextmenu',e=>{e.preventDefault();if(gameActive&&!paused)isZoom=!isZoom;});
+document.addEventListener('mousemove',e=>{
+  if(document.pointerLockElement===canvas&&gameActive&&!paused&&!quizOpen&&!lockerOpen){
+    player.yaw-=e.movementX*0.0022*LS.sens;
+    player.pitch=clamp(player.pitch-e.movementY*0.0022*LS.sens,-1.1,1.1);
+  }
+});
+
+// Touch camera drag & Joystick
+let lookTouchId=null,lastLX=0,lastLY=0;
+canvas.addEventListener('touchstart',e=>{
+  if(!gameActive||paused||quizOpen)return;
+  for(const t of e.changedTouches){if(t.clientX>window.innerWidth*0.35&&lookTouchId===null){lookTouchId=t.identifier;lastLX=t.clientX;lastLY=t.clientY;}}
+},{passive:true});
+canvas.addEventListener('touchmove',e=>{
+  for(const t of e.changedTouches){
+    if(t.identifier===lookTouchId){
+      player.yaw-=(t.clientX-lastLX)*0.0045*LS.sens;
+      player.pitch=clamp(player.pitch-(t.clientY-lastLY)*0.0045*LS.sens,-1.1,1.1);
+      lastLX=t.clientX;lastLY=t.clientY;
+    }
+  }
+},{passive:true});
+canvas.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===lookTouchId)lookTouchId=null;});
+
+const joy=$('mob-joy'),knob=$('mob-knob');
+joy.addEventListener('touchmove',e=>{
+  e.preventDefault();const r=joy.getBoundingClientRect(),t=e.touches[0];
+  let dx=t.clientX-(r.left+r.width/2),dy=t.clientY-(r.top+r.height/2);
+  const d=Math.hypot(dx,dy),max=38;if(d>max){dx=dx/d*max;dy=dy/d*max;}
+  knob.style.transform=`translate(${dx}px,${dy}px)`;joyX=dx/max;joyY=dy/max;
+},{passive:false});
+joy.addEventListener('touchend',()=>{knob.style.transform='';joyX=0;joyY=0;});
+
+function toggleFlash(){
+  flashOn=!flashOn;handGroup.visible=flashOn;uvLight.intensity=flashOn?3.2:0;
+  $('hud-flash-lbl').textContent=flashOn?'[SENTER: ON]':'[SENTER: OFF]';
+  $('btn-hud-flash').classList.toggle('on',flashOn);
+  if(anomMeshes.uvSecret)anomMeshes.uvSecret.material.emissiveIntensity=flashOn?1.1:0;
+  playTone(520,0.06,'square',0.12);
+}
+function togglePause(){
+  paused=!paused;
+  $('pause-screen').classList.toggle('hidden',!paused);
+  if(paused&&document.pointerLockElement)document.exitPointerLock();
+}
+$('btn-hud-flash').onclick=toggleFlash;$('btn-mob-flash').onclick=toggleFlash;
+$('btn-mob-run').onclick=()=>{mobRun=!mobRun;$('btn-mob-run').classList.toggle('active',mobRun);};
+$('btn-mob-zoom').onclick=()=>{isZoom=!isZoom;$('btn-mob-zoom').classList.toggle('active',isZoom);};
+$('btn-hud-pause').onclick=togglePause;$('btn-resume').onclick=togglePause;
+$('btn-hud-mute').onclick=()=>{LS.muted=!LS.muted;localStorage.setItem('exit8_muted',LS.muted?'1':'0');$('btn-hud-mute').textContent=LS.muted?'🔇 SUARA: OFF':'🔊 SUARA: ON';};
+
+// === CHARACTER PREVIEW & SETTINGS UI ===
+function applyHandAndPreview(){
+  sleeveMat.color.set(LS.char.gold?'#f59e0b':LS.char.shirt);
+  const c=$('char-preview').getContext('2d');
+  c.fillStyle='#0f172a';c.fillRect(0,0,150,210);
+  c.fillStyle=LS.char.gold?'#f59e0b':LS.char.shirt;c.fillRect(46,96,58,68);
+  c.fillStyle='#1e293b';c.fillRect(50,164,22,36);c.fillRect(78,164,22,36);
+  c.fillStyle='#f1c27d';c.fillRect(53,50,44,44);
+  if(LS.char.hair!=='none'){c.fillStyle='#1e293b';c.fillRect(51,44,48,14);}
+  if(LS.char.gold||LS.char.cap!=='none'){c.fillStyle=LS.char.gold?'#fde047':'#1d4ed8';c.fillRect(48,38,54,13);}
+  if(LS.char.glasses){c.strokeStyle='#020617';c.lineWidth=3;c.strokeRect(57,64,15,10);c.strokeRect(78,64,15,10);}
+  if(LS.gold){$('gold-skin-status').textContent='✨ Agent Emas Exit 8 Terbuka!';$('btn-equip-gold').classList.remove('hidden');}
+}
+const swBox=$('sw-shirt');
+SHIRT_COLORS.forEach(col=>{
+  const d=document.createElement('div');d.className='swatch'+(LS.char.shirt===col?' sel':'');d.style.background=col;
+  d.onclick=()=>{LS.char.shirt=col;LS.char.gold=false;document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');applyHandAndPreview();};
+  swBox.appendChild(d);
+});
+$('char-name').value=LS.char.name;$('char-hair').value=LS.char.hair;$('char-cap').value=LS.char.cap;$('char-glasses').checked=LS.char.glasses;
+$('btn-equip-gold').onclick=()=>{LS.char.gold=true;LS.char.shirt='#f59e0b';applyHandAndPreview();};
+$('btn-save-char').onclick=()=>{
+  LS.char.name=$('char-name').value.trim()||'Siswa 7';LS.char.hair=$('char-hair').value;LS.char.cap=$('char-cap').value;LS.char.glasses=$('char-glasses').checked;
+  saveChar();applyHandAndPreview();closePanels();
+  if(myRole==='host')rebuildHostRoster();
+  else if(myRole==='client'&&peers[mpHostId]?.ctrl?.open)peers[mpHostId].ctrl.send({type:'char_sync',name:LS.char.name,char:LS.char});
+  showToast('Karakter tersimpan!');
+};
+
+// === MENU BUTTONS ===
+$('sp-type-select').onchange=e=>$('seed-box').classList.toggle('hidden',e.target.value!=='seed');
+$('btn-seed-rand').onclick=()=>{$('seed-input').value=rand4();};
+$('btn-seed-copy').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText($('seed-input').value||'EXIT8');showToast('Seed disalin!');};
+$('btn-play').onclick=()=>startGame($('sp-type-select').value);
+$('btn-open-mp').onclick=()=>{$('panel-mp').classList.remove('hidden');};
+$('btn-open-char').onclick=()=>{applyHandAndPreview();$('panel-char').classList.remove('hidden');};
+$('btn-open-galeri').onclick=()=>{renderGallery();$('panel-galeri').classList.remove('hidden');};
+$('btn-open-lb').onclick=()=>{renderLeaderboard($('lb-list'));$('panel-lb').classList.remove('hidden');};
+$('btn-clear-lb').onclick=()=>{LS.lb=[];localStorage.setItem('exit8_leaderboard','[]');renderLeaderboard($('lb-list'));};
+$('btn-open-set').onclick=()=>{$('panel-set').classList.remove('hidden');};
+$('btn-pause-set').onclick=()=>{$('panel-set').classList.remove('hidden');};
+$('btn-quit').onclick=()=>{
+  gameActive=false;paused=false;$('pause-screen').classList.add('hidden');$('hud').classList.add('hidden');$('crosshair').classList.add('hidden');
+  $('start-screen').classList.remove('hidden');
+};
+$('btn-end-again').onclick=()=>startGame(gameMode);
+$('btn-end-galeri').onclick=()=>{renderGallery();$('panel-galeri').classList.remove('hidden');};
+$('btn-end-menu').onclick=()=>{$('end-screen').classList.add('hidden');$('start-screen').classList.remove('hidden');};
+
+$('set-gfx').value=LS.gfx;$('set-gfx').onchange=e=>{LS.gfx=e.target.value;localStorage.setItem('exit8_gfx',LS.gfx);if(gameActive)buildLevel();};
+$('set-sens').value=LS.sens;$('sens-val').textContent=LS.sens;$('set-sens').oninput=e=>{LS.sens=parseFloat(e.target.value);$('sens-val').textContent=LS.sens;localStorage.setItem('exit8_sens',LS.sens);};
+$('set-vol').value=LS.vol;$('vol-val').textContent=Math.round(LS.vol*100)+'%';$('set-vol').oninput=e=>{LS.vol=parseFloat(e.target.value);$('vol-val').textContent=Math.round(LS.vol*100)+'%';localStorage.setItem('exit8_vol',LS.vol);};
+
+// MP Panel Buttons
+$('btn-host-room').onclick=hostRoom;
+$('btn-show-join').onclick=()=>{$('mp-join-box').classList.remove('hidden');$('mp-host-box').classList.add('hidden');};
+$('btn-join-go').onclick=()=>joinRoom();
+$('btn-copy-code').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(myRoomCode);showToast('Kode disalin: '+myRoomCode);};
+$('btn-copy-link').onclick=()=>{const url=location.origin+location.pathname+'?room='+myRoomCode;navigator.clipboard&&navigator.clipboard.writeText(url);showToast('Link undangan disalin!');};
+$('btn-paste-join').onclick=async()=>{try{const t=await navigator.clipboard.readText();const m=t.match(/([A-Z0-9]{4})$/i);$('mp-join-input').value=(m?m[1]:t).toUpperCase();joinRoom($('mp-join-input').value);}catch(e){showToast('Tempel manual di kotak kode.');}};
+$('mp-custom-quiz-toggle').onchange=e=>{$('mp-custom-quiz-box').classList.toggle('hidden',!e.target.checked);if(e.target.checked&&!$('mp-q-list').children.length)addCustomQuizItem();};
+$('btn-add-cq').onclick=()=>addCustomQuizItem();
+$('btn-mp-start').onclick=()=>{
+  if(myRole!=='host')return;
+  customQuizList=collectCustomQuiz();
+  broadcastCtrl({type:'start_race',customQuestions:customQuizList});
+  startGame('mp');
+};
+
+// === MAIN LOOP ===
+let prevT=performance.now();
+function animate(now){
+  requestAnimationFrame(animate);
+  const dt=Math.min((now-prevT)/1000,0.08);prevT=now;
+
+  // Flicker anomaly
+  flickerLights.forEach(f=>{const on=Math.sin(now*0.025)>-0.3;f.light.intensity=on?0.72:0.05;f.mesh.material.color.setHex(on?0xffffff:0x334155);});
+
+  // Remote Players smooth interpolation (up to 7 remote avatars)
+  Object.values(remotePlayers).forEach(rp=>{
+    rp.group.position.x+=(rp.tx-rp.group.position.x)*0.24;
+    rp.group.position.y+=(rp.ty-rp.group.position.y)*0.24;
+    rp.group.position.z+=(rp.tz-rp.group.position.z)*0.24;
+    rp.group.rotation.y=rp.tyaw+Math.PI;
+    rp.cone.visible=!!rp.flash;
+    const sw=Math.sin(now*(rp.run?0.016:0.009))*0.45;
+    rp.legL.rotation.x=sw;rp.legR.rotation.x=-sw;rp.armL.rotation.x=-sw;rp.armR.rotation.x=sw;
+  });
+
+  if(gameActive&&!paused&&!quizOpen&&!lockerOpen){
+    // Movement
+    let f=0,r=0;
+    if(keys['KeyW']||keys['ArrowUp'])f+=1;if(keys['KeyS']||keys['ArrowDown'])f-=1;
+    if(keys['KeyD']||keys['ArrowRight'])r+=1;if(keys['KeyA']||keys['ArrowLeft'])r-=1;
+    f-=joyY;r+=joyX;
+    const mag=Math.hypot(f,r);if(mag>1){f/=mag;r/=mag;}
+    const wantRun=(keys['ShiftLeft']||keys['ShiftRight']||mobRun)&&mag>0.1&&stamina>2;
+    isSprintingNow=wantRun;
+    stamina=clamp(stamina+(wantRun?-26:16)*dt,0,100);
+    $('stam-fill').style.width=stamina+'%';$('stam-fill').style.background=stamina<25?'#ef4444':'#22c55e';
+    const spd=wantRun?7.2:4.1;
+    const sin=Math.sin(player.yaw),cos=Math.cos(player.yaw);
+    const vx=(-sin*f+cos*r)*spd*dt,vz=(-cos*f-sin*r)*spd*dt;
+
+    if(mag>0.08&&!endingActive)timerRunning=true;
+    if(timerRunning){elapsedMs+=dt*1000;updateHud();}
+
+    if(inCorr(player.x+vx,player.z))player.x+=vx;
+    if(inCorr(player.x,player.z+vz))player.z+=vz;
+    player.y=getFloorY(player.x,player.z)+1.6;
+    if(mag>0.08)walkBob+=dt*(wantRun?14:9);
+    camera.position.set(player.x,player.y+Math.sin(walkBob)*0.04,player.z);
+    camera.rotation.order='YXZ';camera.rotation.y=player.yaw;camera.rotation.x=player.pitch;
+
+    // FOV Zoom
+    const tFov=isZoom?42:72;if(Math.abs(camera.fov-tFov)>0.2){camera.fov+=(tFov-camera.fov)*0.2;camera.updateProjectionMatrix();}
+
+    // Hand sway
+    handGroup.position.y=-0.28+Math.sin(walkBob)*0.015;
+    handGroup.position.x=0.32+Math.cos(walkBob*0.5)*0.01;
+
+    // Locker prompt
+    $('locker-prompt').classList.toggle('hidden',!isNearLocker()||lockerUnlocked);
+
+    // Station weather & distant train near stairs
+    if(audioReady&&actx&&rainGain){
+      const dF=Math.hypot(player.x-14.2,player.z+15.5),dB=Math.hypot(player.x+6.5,player.z-20.5);
+      const prox=clamp(1-Math.min(dF,dB)/8,0,1);
+      rainGain.gain.setTargetAtTime(endingActive?0:(LS.muted?0:prox*0.18*LS.vol),actx.currentTime,0.1);
+      if(!endingActive&&prox>0.2&&actx.currentTime>nextTrainT){playTrainRumble();nextTrainT=actx.currentTime+12+Math.random()*6;}
+    }
+
+    // NPC, Slime (0.5x player speed), Shadow (0.7x)
+    if(npcObj){
+      const g=npcObj.g;
+      if(npcObj.stare&&Math.hypot(g.position.x-player.x,g.position.z-player.z)<7){g.lookAt(player.x,0,player.z);}
+      else{g.position.z+=npcObj.speed*dt;if(g.position.z>5)g.position.z=-14;}
+    }
+    if(slimeObj){
+      const dx=player.x-slimeObj.position.x,dz=player.z-slimeObj.position.z,d=Math.hypot(dx,dz);
+      if(d>0.55){slimeObj.position.x+=dx/d*(4.1*0.5)*dt;slimeObj.position.z+=dz/d*(4.1*0.5)*dt;}
+      else{curLevel=0;showToast('Terkena Slime! Kembali ke Exit 0.');pickAnomalyAndSeg(0);buildLevel();resetPlayerPos();updateHud();}
+    }
+    if(shadowObj){
+      const dx=player.x-shadowObj.position.x,dz=player.z-shadowObj.position.z,d=Math.hypot(dx,dz);
+      if(d>0.6){shadowObj.position.x+=dx/d*(4.1*0.7)*dt;shadowObj.position.z+=dz/d*(4.1*0.7)*dt;}
+      else{curLevel=0;showToast('Tertangkap Bayangan! Kembali ke Exit 0.');pickAnomalyAndSeg(0);buildLevel();resetPlayerPos();updateHud();}
+    }
+
+    // Stairs & Ending Triggers
+    if(endingActive){
+      endingTimer+=dt;if(player.z<-26||endingTimer>3.6)finishVictory();
+    }else{
+      if(player.x>12&&player.z<-19.5)handleStairsChoice(true);
+      else if(player.x<-4&&player.z>18.5)handleStairsChoice(false);
+    }
+  }
+  renderer.render(scene,camera);
+}
+
+window.addEventListener('resize',()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+// Boot
+updateGalCounts();applyHandAndPreview();buildLevel();
+const urlRoom=new URLSearchParams(location.search).get('room');
+if(urlRoom){$('panel-mp').classList.remove('hidden');$('mp-join-box').classList.remove('hidden');$('mp-join-input').value=urlRoom.toUpperCase();joinRoom(urlRoom);}
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
